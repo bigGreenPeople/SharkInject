@@ -1,0 +1,2 @@
+rootProject.name='SharkInject'
+include ':app'
