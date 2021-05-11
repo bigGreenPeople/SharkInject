@@ -178,25 +178,102 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
 
 struct process_inject {
     pid_t pid;
-    char *libname;
+    char *lib_name;
+    char *dex_name;
     char *entry_fun;
-} process_inject = {0, "/system/lib64/myso/libInjectModule.so", "entry"};
+} process_inject = {0, "/data/local/tmp/libLoadModule.so","/data/local/tmp/classes.dex", "entry"};
 
-int test(int argc, char *argv[]) {
+
+
+int test2(int argc, char *argv[]) {
     if (argc < 2) {
         printf("Missing parameter\n");
         exit(0);
     }
 
     process_inject.pid = atoi(argv[1]);
-    process_inject.libname = strdup(argv[2]);
+    process_inject.lib_name = strdup(argv[2]);
 
     if (process_inject.pid == -1) {
         LOGE("find process name error");
         return -1;
     }
 
-    char *so_parameter = "/data/local/tmp/classes.dex";
-    return inject_remote_process(process_inject.pid, process_inject.libname,
-                                 process_inject.entry_fun, so_parameter, 1);
+    return inject_remote_process(process_inject.pid, process_inject.lib_name,
+                                 process_inject.entry_fun, process_inject.dex_name, 1);
+}
+
+int test(int argc, char *argv[]) {
+    pid_t pid = 0;
+    int index = 0;
+    char *pkgName = NULL;
+    char *fileName = NULL;
+    char *dexName = NULL;
+
+    while (index < argc) {
+        if (strcmp("-p", argv[index]) == 0) {
+            if (index + 1 >= argc) {
+                printf("Missing parameter -p\n");
+                return -1;
+            }
+            index++;
+            pid = atoi(argv[index]);
+        }
+
+        if (strcmp("-n", argv[index]) == 0) {
+            if (index + 1 >= argc) {
+                printf("Missing parameter -n\n");
+                return -1;
+            }
+            index++;
+            pkgName = argv[index];
+        }
+
+        if (strcmp("-f", argv[index]) == 0) {
+            if (index + 1 >= argc) {
+                printf("Missing parameter -f\n");
+                return -1;
+            }
+            index++;
+            fileName = argv[index];
+        }
+
+        if (strcmp("-d", argv[index]) == 0) {
+            if (index + 1 >= argc) {
+                printf("Missing parameter -d\n");
+                return -1;
+            }
+            index++;
+            dexName = argv[index];
+        }
+        index++;
+    }
+
+    if (pkgName != NULL) {
+        printf("pkgName is %s\n", pkgName);
+        if (getPidByName(&pid, pkgName)) {
+            printf("getPidByName pid is %d\n", pid);
+        }
+    }
+
+    if (pid == 0) {
+        printf("not found target\n");
+        exit(0);
+    }
+
+    process_inject.pid = pid;
+
+    if (dexName != NULL) {
+        printf("dexName is %s\n", dexName);
+        process_inject.dex_name = strdup(dexName);
+    }
+
+
+    if (fileName != NULL) {
+        printf("fileName is %s\n", fileName);
+        process_inject.lib_name = strdup(fileName);
+    }
+
+    return inject_remote_process(process_inject.pid, process_inject.lib_name,
+                                 process_inject.entry_fun, process_inject.dex_name, 1);
 }

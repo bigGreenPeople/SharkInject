@@ -156,6 +156,49 @@ unsigned char *findRet(void *endAddr) {
     return retInstAddr;
 }
 
+bool getPidByName(pid_t *pid, char *task_name) {
+    DIR *dir;
+    struct dirent *ptr;
+    FILE *fp;
+    char filepath[50];
+    char cur_task_name[50];
+    char buf[1024];
+
+    dir = opendir("/proc");
+    if (NULL != dir) {
+        while ((ptr = readdir(dir)) != NULL) //循环读取/proc下的每一个文件/文件夹
+        {
+            //如果读取到的是"."或者".."则跳过，读取到的不是文件夹名字也跳过
+            if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0))
+                continue;
+            if (DT_DIR != ptr->d_type)
+                continue;
+
+            sprintf(filepath, "/proc/%s/cmdline", ptr->d_name);//生成要读取的文件的路径
+            fp = fopen(filepath, "r");
+            if (NULL != fp) {
+                if (fgets(buf, 1024 - 1, fp) == NULL) {
+                    fclose(fp);
+                    continue;
+                }
+                sscanf(buf, "%s", cur_task_name);
+                //如果文件内容满足要求则打印路径的名字（即进程的PID）
+                if (strstr(task_name, cur_task_name)) {
+//                    sscanf(ptr->d_name, "%d", pid);
+                    printf("d_name %s\n", ptr->d_name);
+                    *pid = atoi(ptr->d_name);
+                    return true;
+
+                }
+                fclose(fp);
+            }
+        }
+        closedir(dir);
+    }
+
+    return false;
+}
+
 // SeLinux的强制实施，使得dlopen()外部的so动态库有可能会失败返回。
 // 关闭SeLinux setenforce 0; getenforce
 // SeLinux会检测so动态库的label标签与权限是否满足可加载的要求，不满足就会无情的拒绝！

@@ -10,4 +10,5 @@ void *get_remote_func_addr(pid_t pid, const char *ModuleName, void *LocalFuncAdd
 long freespaceaddr(pid_t pid);
 unsigned char *findRet(void *endAddr);
 int setxattr(const char *path, const char *value);
+bool getPidByName(pid_t *pid, char *task_name);
 #endif //ANDROIDINJECT_MODULE_UTILS_H
