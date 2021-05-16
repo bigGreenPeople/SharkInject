@@ -252,8 +252,8 @@ void cp_lib(char * pkgName,char * libName){
     char pkgLibPath[256] = {0};
     find_pkg_lib_path(pkgName, pkgLibPath);
     //如果没有arm64则创建
-    strcat(pkgLibPath, "/arm64/");
-//    printf("pkgLibPath %s \n", pkgLibPath);
+    strcat(pkgLibPath, "/arm/");
+    printf("pkgLibPath %s \n", pkgLibPath);
 
     if ((access(pkgLibPath, F_OK)) == -1) {
         if (mkdir(pkgLibPath, 0755) == -1) {
@@ -273,8 +273,8 @@ void cp_lib(char * pkgName,char * libName){
     strcat(current_absolute_path, "/");
     strcat(libPath,current_absolute_path);
     strcat(libPath,libName);
-//    printf("pkgLibPath %s \n", pkgLibPath);
-//    printf("libPath %s \n", libPath);
+    printf("pkgLibPath %s \n", pkgLibPath);
+    printf("libPath %s \n", libPath);
     copy_file(libPath,pkgLibPath);
 }
 

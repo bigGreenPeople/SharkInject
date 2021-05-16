@@ -18,7 +18,7 @@ public class Entry {
         Log.i(TAG, "onLoad pkgName: " + pkgName);
 //        Log.i(TAG, "onLoad classLoader: " + classLoader.toString());
 //        classLoader.findLibrary()
-        try {
+        /*try {
             Class SharkUitlsClass = classLoader.loadClass("com.shark.nougat.SharkUitls");
             XposedHelpers.findAndHookMethod(SharkUitlsClass, "add", int.class, int.class, new XC_MethodHook() {
                 @Override
@@ -34,6 +34,6 @@ public class Entry {
             });
         } catch (Exception e) {
             Log.e(TAG, "onLoad: ", e);
-        }
+        }*/
     }
 }

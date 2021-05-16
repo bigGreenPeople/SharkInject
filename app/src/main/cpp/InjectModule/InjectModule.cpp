@@ -92,21 +92,21 @@ int _clientInit(const char *jarpath) {
     JNIEnv *testenv = NULL;
     void *handle;
     //依靠libandroid_runtime.so 找到JavaVM
-    handle = dlopen_ex("/system/lib64/libandroid_runtime.so", RTLD_NOW);
+    handle = dlopen_ex("/system/lib/libandroid_runtime.so", RTLD_NOW);
     LOGI("fake_dlopen for libandroid_runtime.so returned %p\n", handle);
     void *pVM = dlsym_ex(handle, "_ZN7android14AndroidRuntime7mJavaVME");
 
     JavaVM * javaVM = (JavaVM *)*(void**)pVM;
-    LOGE("use mJavaVM returned %p\n", javaVM);
+    LOGI("use mJavaVM returned %p\n", javaVM);
     if (javaVM)
     {
         jint result = javaVM->AttachCurrentThread(&testenv, 0);
         if ((result == JNI_OK) && (testenv != NULL))
         {
-            LOGE("attach ok. clientInit JavaVM : 0x%p, JNIEnv : 0x%p\n", javaVM, testenv);
-            load_dex_and_run2(testenv, jarpath);
+            LOGI("attach ok. clientInit JavaVM : 0x%p, JNIEnv : 0x%p\n", javaVM, testenv);
+            load_dex_and_run(testenv, jarpath);
             javaVM->DetachCurrentThread();
-            LOGE("DetachCurrentThread all finished!");
+            LOGI("DetachCurrentThread all finished!");
         }
         else
         {
