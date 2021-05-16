@@ -16,5 +16,4 @@ const char *libc_path = "/system/lib/libc.so";
 const char *linker_path = "/system/bin/linker";
 const char *libdl_path = "/system/lib/libdl.so";
 #endif
-
 #endif //ANDROIDINJECT_LIB_NAME_H

@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <asm/unistd.h>
+#include <sys/stat.h>
 #include "PrintLog.h"
 
 #define  MAX_PATH 0x100
@@ -156,7 +157,7 @@ unsigned char *findRet(void *endAddr) {
     return retInstAddr;
 }
 
-bool getPidByName(pid_t *pid, char *task_name) {
+bool get_pid_by_name(pid_t *pid, char *task_name) {
     DIR *dir;
     struct dirent *ptr;
     FILE *fp;
@@ -197,6 +198,145 @@ bool getPidByName(pid_t *pid, char *task_name) {
     }
 
     return false;
+}
+
+
+void copy_file(char *source_path, char *destination_path) {
+    char buffer[1024];
+    FILE *in, *out;
+    if ((in = fopen(source_path, "r")) == NULL) {
+        printf("源文件打开失败！\n");
+        perror("fopen");
+        exit(1);
+    }
+    if ((out = fopen(destination_path, "w")) == NULL) {
+        printf("目标文件创建失败！\n");
+        perror("fopen");
+        exit(1);
+    }
+    int len;
+    while ((len = fread(buffer, 1, 1024, in)) > 0) {
+        fwrite(buffer, 1, len, out);
+    }
+    fclose(out);
+    fclose(in);
+}
+
+void find_pkg_lib_path(char *pkgName, char *pkgLibPath) {
+    DIR *pDir;
+    struct dirent *ent;
+    int i = 0;
+    char childpath[256];
+    pDir = opendir("/data/app");
+    memset(childpath, 0, sizeof(childpath));
+
+    while ((ent = readdir(pDir)) != NULL) {
+        if (ent->d_type & DT_DIR) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+            if (strstr(ent->d_name, pkgName) != NULL) {
+                strcat(pkgLibPath, "/data/app/");
+                strcat(pkgLibPath, ent->d_name);
+                strcat(pkgLibPath, "/lib");
+                break;
+            }
+
+        }
+    }
+}
+
+void cp_lib(char * pkgName,char * libName){
+    //获取目标lib目录
+    char pkgLibPath[256] = {0};
+    find_pkg_lib_path(pkgName, pkgLibPath);
+    //如果没有arm64则创建
+    strcat(pkgLibPath, "/arm64/");
+//    printf("pkgLibPath %s \n", pkgLibPath);
+
+    if ((access(pkgLibPath, F_OK)) == -1) {
+        if (mkdir(pkgLibPath, 0755) == -1) {
+            perror("mkdir");
+            exit(-1);
+        }
+    }
+    strcat(pkgLibPath, libName);
+    //获取当前目录
+    char current_absolute_path[4096] = {0};
+    if (realpath("./", current_absolute_path)==NULL) {
+        perror("realpath");
+        exit(-1);
+    }
+    //得到lib的路径
+    char libPath[500] = {};
+    strcat(current_absolute_path, "/");
+    strcat(libPath,current_absolute_path);
+    strcat(libPath,libName);
+//    printf("pkgLibPath %s \n", pkgLibPath);
+//    printf("libPath %s \n", libPath);
+    copy_file(libPath,pkgLibPath);
+}
+
+/**
+ *  获取应用的android.intent.action.MAIN
+ * @param pkg_name 获取的应用包名
+ * @param start_activity_name out 存放启动的main activity
+ */
+void get_app_start_activity(char * pkg_name, char *start_activity_name) {
+    char cmdstring[1024] = "dumpsys package ";
+    char cmd_string[1024] = {0};
+    char temp_file[] = "tmp_XXXXXX";
+
+    strcat(cmdstring,pkg_name);
+    int fd;
+
+    if ((fd = mkstemp(temp_file)) == -1) {
+        printf("create tmp file failed.\n");
+    }
+
+    sprintf(cmd_string, "%s > %s", cmdstring, temp_file);
+    system(cmd_string);
+
+    FILE *fp = fdopen(fd, "r");
+    if (fp == NULL) {
+        printf("can not load file!");
+        return;
+    }
+    char line[1024];
+    while (!feof(fp)) {
+        fgets(line, 1024, fp);
+        if (strstr(line, "android.intent.action.MAIN")) {
+            fgets(line, 1024, fp);
+            char *p;
+            //选取第二个
+            int index = 1;
+            p = strtok(line, " ");
+            while (p) {
+                if (index == 2) {
+                    strcpy(start_activity_name, p);
+                }
+                index++;
+                p = strtok(NULL, " ");
+            }
+            break;
+        }
+    }
+    fclose(fp);
+    unlink(temp_file);
+    return;
+}
+
+/**
+ * 启动app
+ * @param pkg_name
+ */
+void start_app(char * pkg_name){
+    char start_activity_name[1024] = {0};
+    get_app_start_activity(pkg_name, start_activity_name);
+    printf("%s\n", start_activity_name);
+
+    char start_cmd[1024] = "am start ";
+    strcat(start_cmd, start_activity_name);
+    system(start_cmd);
 }
 
 // SeLinux的强制实施，使得dlopen()外部的so动态库有可能会失败返回。

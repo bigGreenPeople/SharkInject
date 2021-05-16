@@ -14,7 +14,6 @@
 #include "PrintLog.h"
 #include "ptrace_utils.h"
 #include "module_utils.h"
-
 /*************************************************
  *  通过远程直接调用dlopen\dlsym的方法ptrace注入so模块到远程进程中
  *  Input:          pid表示远程进程的ID，LibPath为被远程注入的so模块路径，FunctionName为远程注入的模块后调用的函数
@@ -164,61 +163,48 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
     return iRet;
 }
 
-// SeLinux的强制实施，使得dlopen()外部的so动态库有可能会失败返回。
-// 关闭SeLinux setenforce 0; getenforce
-// SeLinux会检测so动态库的label标签与权限是否满足可加载的要求，不满足就会无情的拒绝！
-// 为了解决这个问题，需要调用setxattr()修改so的属性信息。
-// chcon -v u:object_r:system_file:s0 /data/local/tmp/libInjectModule.so
-//int setxattr(const char *path, const char *value) {
-//    if ((access("/sys/fs/selinux", F_OK)) != -1) {
-//        return 0;
-//    }
-//    return syscall(__NR_setxattr, path, "security.selinux", value, strlen(value), 0);
-//}
-
 struct process_inject {
     pid_t pid;
-    char *lib_name;
-    char *dex_name;
+    char lib_name[1024];
+    char dex_name[1024];
     char *entry_fun;
-} process_inject = {0, "/data/local/tmp/libLoadModule.so","/data/local/tmp/classes.dex", "entry"};
+} process_inject = {0, "","", "entry"};
 
 
-
-int test2(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Missing parameter\n");
-        exit(0);
+void init_lib(char * pkgName){
+    //获取当前目录
+    char current_absolute_path[4096] = {0};
+    if (realpath("./", current_absolute_path)==NULL) {
+        perror("realpath");
+        exit(-1);
     }
+    strcat(process_inject.lib_name,current_absolute_path);
+    strcat(process_inject.lib_name,"/libLoadModule.so");
 
-    process_inject.pid = atoi(argv[1]);
-    process_inject.lib_name = strdup(argv[2]);
+    strcat(process_inject.dex_name,current_absolute_path);
+    strcat(process_inject.dex_name,"/classes.dex");
 
-    if (process_inject.pid == -1) {
-        LOGE("find process name error");
-        return -1;
-    }
-
-    return inject_remote_process(process_inject.pid, process_inject.lib_name,
-                                 process_inject.entry_fun, process_inject.dex_name, 1);
+    cp_lib(pkgName,"libsandhook.so");
 }
 
 int test(int argc, char *argv[]) {
     pid_t pid = 0;
     int index = 0;
-    char *pkgName = NULL;
-    char *fileName = NULL;
-    char *dexName = NULL;
+    char *pkg_name = NULL;
+    char *file_name = NULL;
+    char *dex_name = NULL;
+
+    init_lib(pkg_name);
 
     while (index < argc) {
-        if (strcmp("-p", argv[index]) == 0) {
-            if (index + 1 >= argc) {
-                printf("Missing parameter -p\n");
-                return -1;
-            }
-            index++;
-            pid = atoi(argv[index]);
-        }
+//        if (strcmp("-p", argv[index]) == 0) {
+//            if (index + 1 >= argc) {
+//                printf("Missing parameter -p\n");
+//                return -1;
+//            }
+//            index++;
+//            pid = atoi(argv[index]);
+//        }
 
         if (strcmp("-n", argv[index]) == 0) {
             if (index + 1 >= argc) {
@@ -226,7 +212,10 @@ int test(int argc, char *argv[]) {
                 return -1;
             }
             index++;
-            pkgName = argv[index];
+            pkg_name = argv[index];
+
+            start_app(pkg_name);
+            sleep(5);
         }
 
         if (strcmp("-f", argv[index]) == 0) {
@@ -235,7 +224,7 @@ int test(int argc, char *argv[]) {
                 return -1;
             }
             index++;
-            fileName = argv[index];
+            file_name = argv[index];
         }
 
         if (strcmp("-d", argv[index]) == 0) {
@@ -244,14 +233,14 @@ int test(int argc, char *argv[]) {
                 return -1;
             }
             index++;
-            dexName = argv[index];
+            dex_name = argv[index];
         }
         index++;
     }
 
-    if (pkgName != NULL) {
-        printf("pkgName is %s\n", pkgName);
-        if (getPidByName(&pid, pkgName)) {
+    if (pkg_name != NULL) {
+        printf("pkg_name is %s\n", pkg_name);
+        if (get_pid_by_name(&pid, pkg_name)) {
             printf("getPidByName pid is %d\n", pid);
         }
     }
@@ -263,15 +252,17 @@ int test(int argc, char *argv[]) {
 
     process_inject.pid = pid;
 
-    if (dexName != NULL) {
-        printf("dexName is %s\n", dexName);
-        process_inject.dex_name = strdup(dexName);
+    if (dex_name != NULL) {
+        printf("dex_name is %s\n", dex_name);
+//        process_inject.dex_name = strdup(dex_name);
+        strcpy(process_inject.dex_name ,strdup(dex_name));
     }
 
 
-    if (fileName != NULL) {
-        printf("fileName is %s\n", fileName);
-        process_inject.lib_name = strdup(fileName);
+    if (file_name != NULL) {
+        printf("file_name is %s\n", file_name);
+//        process_inject.lib_name = strdup(file_name);
+        strcpy(process_inject.lib_name ,strdup(file_name));
     }
 
     return inject_remote_process(process_inject.pid, process_inject.lib_name,
