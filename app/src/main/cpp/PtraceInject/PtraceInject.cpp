@@ -194,7 +194,6 @@ int test(int argc, char *argv[]) {
     char *file_name = NULL;
     char *dex_name = NULL;
 
-    init_lib(pkg_name);
 
     while (index < argc) {
 //        if (strcmp("-p", argv[index]) == 0) {
@@ -214,6 +213,7 @@ int test(int argc, char *argv[]) {
             index++;
             pkg_name = argv[index];
 
+            init_lib(pkg_name);
             start_app(pkg_name);
             sleep(5);
         }

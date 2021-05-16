@@ -71,7 +71,9 @@ void *get_remote_func_addr(pid_t pid, const char *ModuleName, void *LocalFuncAdd
 
     RemoteFuncAddr = (void *) ((uintptr_t) LocalFuncAddr - (uintptr_t) LocalModuleAddr +
                                (uintptr_t) RemoteModuleAddr);
-
+    //[get_remote_func_addr] lmod=0x752805B000, rmod=0x0,          lfunc=0x752805C0C0, rfunc=0x10C0
+    //[get_remote_func_addr] lmod=0x7CBB472000, rmod=0x0,          lfunc=0x7CBB4730EC, rfunc=0x10EC
+    //[get_remote_func_addr] lmod=0x72921C6000, rmod=0x748CD89000, lfunc=0x72921C70C0, rfunc=0x748CD8A0C0
     LOGI("[get_remote_func_addr] lmod=0x%lX, rmod=0x%lX, lfunc=0x%lX, rfunc=0x%lX",
          LocalModuleAddr, RemoteModuleAddr, LocalFuncAddr, RemoteFuncAddr);
     return RemoteFuncAddr;
