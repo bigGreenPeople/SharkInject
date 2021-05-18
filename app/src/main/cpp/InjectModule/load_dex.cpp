@@ -266,20 +266,7 @@ jclass myFindClass(JNIEnv* jenv,const char* targetClassName,jobject dexObj)
     return clazzTarget;
 }
 
-jobject createNewClassLoader(JNIEnv* env, const char *jarpath,jobject appPathClassLoader){
-//    jclass clzClassLoader = env->FindClass("java/lang/ClassLoader");
-//    LOGI("java/lang/ClassLoader 0x%p\n", clzClassLoader);
-//    jmethodID mdgetSystemClassLoader = env->GetStaticMethodID(clzClassLoader,
-//                                                              "getSystemClassLoader",
-//                                                              "()Ljava/lang/ClassLoader;");
-//    LOGI("java/lang/ClassLoader.getSystemClassLoader method 0x%p\n", mdgetSystemClassLoader);
-//    jobject systemClassLoader = env->CallStaticObjectMethod(clzClassLoader, mdgetSystemClassLoader);
-//    LOGI("java/lang/ClassLoader.getSystemClassLoader 0x%p\n", systemClassLoader);
-//    if (NULL == systemClassLoader) {
-//        LOGE("getSystemClassLoader failed!!!");
-//        return NULL;
-//    }
-
+jobject createNewClassLoader(JNIEnv* env, const char *jarpath,char * nativepath){
     jclass clzPathClassLoader = env->FindClass("dalvik/system/PathClassLoader");
 //    LOGI("java/lang/ClassLoader 0x%p\n", clzClassLoader);
     jmethodID mdinitPathCL = env->GetMethodID(clzPathClassLoader, "<init>",
@@ -287,8 +274,11 @@ jobject createNewClassLoader(JNIEnv* env, const char *jarpath,jobject appPathCla
 
     LOGI("PathClassLoader loading jarpath[%s]\n", jarpath);
     jstring jarpath_str = env->NewStringUTF(jarpath);
-    jobject myClassLoader = env->NewObject(clzPathClassLoader, mdinitPathCL, jarpath_str, NULL,
-                                           appPathClassLoader);
+    jstring narivepath_str = env->NewStringUTF(nativepath);
+
+    jobject myClassLoader = env->NewObject(clzPathClassLoader, mdinitPathCL, jarpath_str, narivepath_str,
+                                           NULL);
+    env->DeleteLocalRef(narivepath_str);
     env->DeleteLocalRef(jarpath_str);
     return myClassLoader;
 }

@@ -65,7 +65,14 @@ void load_dex_and_run2(JNIEnv *env, const char *jarpath) {
  */
 void load_dex_and_run(JNIEnv *env, const char *jarpath) {
     jobject appPathClassLoader = getClassLoader(env);
-    jobject myClassLoader = createNewClassLoader(env,jarpath,appPathClassLoader);
+    //获取当前目录
+    char current_absolute_path[4096] = {0};
+    if (realpath("./", current_absolute_path)==NULL) {
+        perror("realpath");
+        exit(-1);
+    }
+
+    jobject myClassLoader = createNewClassLoader(env,jarpath,current_absolute_path);
     LOGI("myClassLoader 0x%p\n", myClassLoader);
     if (NULL != myClassLoader) {
         jclass entry_class = findClassFromLoader(env, myClassLoader, "com.app.service.Entry");
