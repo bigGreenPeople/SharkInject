@@ -64,8 +64,8 @@ void load_dex_and_run2(JNIEnv *env, const char *jarpath) {
  * @param jarpath
  */
 void load_dex_and_run(JNIEnv *env, const char *jarpath) {
-
-    jobject myClassLoader = createNewClassLoader(env,jarpath);
+    jobject appPathClassLoader = getClassLoader(env);
+    jobject myClassLoader = createNewClassLoader(env,jarpath,appPathClassLoader);
     LOGI("myClassLoader 0x%p\n", myClassLoader);
     if (NULL != myClassLoader) {
         jclass entry_class = findClassFromLoader(env, myClassLoader, "com.app.service.Entry");
@@ -73,7 +73,7 @@ void load_dex_and_run(JNIEnv *env, const char *jarpath) {
         if (NULL != entry_class) {
             LOGI("Entry Class 0x%p\n", entry_class);
             //"(Ldalvik/system/PathClassLoader;Ljava/lang/String;Z)V"
-            jobject appPathClassLoader = getClassLoader(env);
+
             const char *entryName = "onLoad";
             jmethodID entry_method = env->GetStaticMethodID(entry_class, entryName,
                                                             "(Ldalvik/system/PathClassLoader;Ljava/lang/String;Z)V");

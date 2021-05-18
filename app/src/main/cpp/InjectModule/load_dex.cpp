@@ -266,42 +266,29 @@ jclass myFindClass(JNIEnv* jenv,const char* targetClassName,jobject dexObj)
     return clazzTarget;
 }
 
-jobject createNewClassLoader(JNIEnv* env, const char *jarpath){
-    jclass clzClassLoader = env->FindClass("java/lang/ClassLoader");
-    LOGI("java/lang/ClassLoader 0x%p\n", clzClassLoader);
-    jmethodID mdgetSystemClassLoader = env->GetStaticMethodID(clzClassLoader,
-                                                              "getSystemClassLoader",
-                                                              "()Ljava/lang/ClassLoader;");
-    LOGI("java/lang/ClassLoader.getSystemClassLoader method 0x%p\n", mdgetSystemClassLoader);
-    jobject systemClassLoader = env->CallStaticObjectMethod(clzClassLoader, mdgetSystemClassLoader);
-    LOGI("java/lang/ClassLoader.getSystemClassLoader 0x%p\n", systemClassLoader);
-    if (NULL == systemClassLoader) {
-        LOGE("getSystemClassLoader failed!!!");
-        return NULL;
-    }
-
-//    char cmdline[1024];
-
-//    get_cmdline_from_pid(getpid(), cmdline, sizeof(cmdline));
-//    if (strstr(cmdline, "system_server") != NULL) {
-//        entryName = "entryServer";
-//    } else if (strstr(cmdline, "com.android.phone") != NULL) {
-//        entryName = "entryPhone";
-//    } else if (strstr(cmdline, "zygote") != NULL) {
-//        entryName = "entryZygote";
-//    } else {
-//        LOGE("wrong cmdLine %s", cmdline);
-//        return;
+jobject createNewClassLoader(JNIEnv* env, const char *jarpath,jobject appPathClassLoader){
+//    jclass clzClassLoader = env->FindClass("java/lang/ClassLoader");
+//    LOGI("java/lang/ClassLoader 0x%p\n", clzClassLoader);
+//    jmethodID mdgetSystemClassLoader = env->GetStaticMethodID(clzClassLoader,
+//                                                              "getSystemClassLoader",
+//                                                              "()Ljava/lang/ClassLoader;");
+//    LOGI("java/lang/ClassLoader.getSystemClassLoader method 0x%p\n", mdgetSystemClassLoader);
+//    jobject systemClassLoader = env->CallStaticObjectMethod(clzClassLoader, mdgetSystemClassLoader);
+//    LOGI("java/lang/ClassLoader.getSystemClassLoader 0x%p\n", systemClassLoader);
+//    if (NULL == systemClassLoader) {
+//        LOGE("getSystemClassLoader failed!!!");
+//        return NULL;
 //    }
+
     jclass clzPathClassLoader = env->FindClass("dalvik/system/PathClassLoader");
-    LOGI("java/lang/ClassLoader 0x%p\n", clzClassLoader);
+//    LOGI("java/lang/ClassLoader 0x%p\n", clzClassLoader);
     jmethodID mdinitPathCL = env->GetMethodID(clzPathClassLoader, "<init>",
                                               "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;)V");
 
     LOGI("PathClassLoader loading jarpath[%s]\n", jarpath);
     jstring jarpath_str = env->NewStringUTF(jarpath);
     jobject myClassLoader = env->NewObject(clzPathClassLoader, mdinitPathCL, jarpath_str, NULL,
-                                           systemClassLoader);
+                                           appPathClassLoader);
     env->DeleteLocalRef(jarpath_str);
     return myClassLoader;
 }
