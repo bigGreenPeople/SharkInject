@@ -56,10 +56,15 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
 
 void dump_registers(struct pt_regs *regs);
 
-void * get_mmap_address(pid_t pid);
-void * get_dlopen_address(pid_t pid);
-void * get_dlclose_address(pid_t pid);
-void * get_dlsym_address(pid_t pid);
-void * get_dlerror_address(pid_t pid);
+void *get_mmap_address(pid_t pid);
+
+void *get_dlopen_address(pid_t pid);
+
+void *get_dlclose_address(pid_t pid);
+
+void *get_dlsym_address(pid_t pid);
+
+void *get_dlerror_address(pid_t pid);
+
 
 #endif //ANDROIDINJECT_PTRACE_UTILS_H

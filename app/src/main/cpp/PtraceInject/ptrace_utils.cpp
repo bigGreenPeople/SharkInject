@@ -19,26 +19,28 @@
 #include "lib_name.h"
 #include "module_utils.h"
 
-void * get_mmap_address(pid_t pid){
+
+void *get_mmap_address(pid_t pid) {
     return get_remote_func_addr(pid, libc_path, (void *) mmap);
 }
 
-void * get_dlopen_address(pid_t pid){
+void *get_dlopen_address(pid_t pid) {
     void *dlopen_addr;
     char sdk_ver[32];
     memset(sdk_ver, 0, sizeof(sdk_ver));
     __system_property_get("ro.build.version.sdk", sdk_ver);
 
+    printf("linker_path value:%s\n",linker_path);
     if (atoi(sdk_ver) <= 23) {
         dlopen_addr = get_remote_func_addr(pid, linker_path, (void *) dlopen);
-    }else{
+    } else {
         dlopen_addr = get_remote_func_addr(pid, libdl_path, (void *) dlopen);
     }
     LOGD("dlopen RemoteFuncAddr:0x%lx", (uintptr_t) dlopen_addr);
     return dlopen_addr;
 }
 
-void * get_dlclose_address(pid_t pid){
+void *get_dlclose_address(pid_t pid) {
     void *dlclose_addr;
     char sdk_ver[32];
     memset(sdk_ver, 0, sizeof(sdk_ver));
@@ -46,14 +48,14 @@ void * get_dlclose_address(pid_t pid){
 
     if (atoi(sdk_ver) <= 23) {
         dlclose_addr = get_remote_func_addr(pid, linker_path, (void *) dlclose);
-    }else{
+    } else {
         dlclose_addr = get_remote_func_addr(pid, libdl_path, (void *) dlclose);
     }
     LOGD("dlclose RemoteFuncAddr:0x%lx", (uintptr_t) dlclose_addr);
     return dlclose_addr;
 }
 
-void * get_dlsym_address(pid_t pid){
+void *get_dlsym_address(pid_t pid) {
     void *dlsym_addr;
     char sdk_ver[32];
     memset(sdk_ver, 0, sizeof(sdk_ver));
@@ -61,7 +63,7 @@ void * get_dlsym_address(pid_t pid){
 
     if (atoi(sdk_ver) <= 23) {
         dlsym_addr = get_remote_func_addr(pid, linker_path, (void *) dlsym);
-    }else{
+    } else {
         dlsym_addr = get_remote_func_addr(pid, libdl_path, (void *) dlsym);
     }
     LOGD("dlsym RemoteFuncAddr:0x%lx", (uintptr_t) dlsym_addr);
@@ -69,7 +71,7 @@ void * get_dlsym_address(pid_t pid){
 }
 
 
-void * get_dlerror_address(pid_t pid){
+void *get_dlerror_address(pid_t pid) {
     void *dlerror_addr;
     char sdk_ver[32];
     memset(sdk_ver, 0, sizeof(sdk_ver));
@@ -77,12 +79,13 @@ void * get_dlerror_address(pid_t pid){
 
     if (atoi(sdk_ver) <= 23) {
         dlerror_addr = get_remote_func_addr(pid, linker_path, (void *) dlerror);
-    }else{
+    } else {
         dlerror_addr = get_remote_func_addr(pid, libdl_path, (void *) dlerror);
     }
     LOGD("dlerror RemoteFuncAddr:0x%lx", (uintptr_t) dlerror_addr);
     return dlerror_addr;
 }
+
 /***************************
  *  Description:    使用ptrace Attach附加到指定进程,发送SIGSTOP信号给指定进程让其停止下来并对其进行跟踪。
  *                  但是被跟踪进程(tracee)不一定会停下来，因为同时attach和传递SIGSTOP可能会将SIGSTOP丢失。
@@ -458,7 +461,7 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
     } else { // Android 7.0
         static long start_ptr = 0;
         if (start_ptr == 0) {
-            start_ptr = (long)get_module_base_addr(pid, libc_path);
+            start_ptr = (long) get_module_base_addr(pid, libc_path);
         }
         lr_val = start_ptr;
     }

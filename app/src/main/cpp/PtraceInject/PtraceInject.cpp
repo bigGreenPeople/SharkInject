@@ -184,6 +184,7 @@ void init_lib() {
 
     strcat(process_inject.dex_name, current_absolute_path);
     strcat(process_inject.dex_name, "/classes.dex");
+
     //修改为默认从加载so的路径读取
 //    cp_lib(pkgName,"libsandhook.so");
 }

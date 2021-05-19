@@ -18,6 +18,7 @@
 
 #define  MAX_PATH 0x100
 
+
 /*************************************************
  *  Description:    在指定进程中搜索对应模块的基址
  *  Input:          pid表示远程进程的ID，若为-1表示自身进程，ModuleName表示要搜索的模块的名称
@@ -57,6 +58,7 @@ void *get_module_base_addr(pid_t pid, const char *ModuleName) {
 
     return (void *) ModuleBaseAddr;
 }
+
 
 /*************************************************
  *  Description:    获取远程进程与本进程都加载的模块中函数的地址
@@ -247,7 +249,7 @@ void find_pkg_lib_path(char *pkgName, char *pkgLibPath) {
     }
 }
 
-void cp_lib(char * pkgName,char * libName){
+void cp_lib(char *pkgName, char *libName) {
     //获取目标lib目录
     char pkgLibPath[256] = {0};
     find_pkg_lib_path(pkgName, pkgLibPath);
@@ -264,18 +266,18 @@ void cp_lib(char * pkgName,char * libName){
     strcat(pkgLibPath, libName);
     //获取当前目录
     char current_absolute_path[4096] = {0};
-    if (realpath("./", current_absolute_path)==NULL) {
+    if (realpath("./", current_absolute_path) == NULL) {
         perror("realpath");
         exit(-1);
     }
     //得到lib的路径
     char libPath[500] = {};
     strcat(current_absolute_path, "/");
-    strcat(libPath,current_absolute_path);
-    strcat(libPath,libName);
+    strcat(libPath, current_absolute_path);
+    strcat(libPath, libName);
     printf("pkgLibPath %s \n", pkgLibPath);
     printf("libPath %s \n", libPath);
-    copy_file(libPath,pkgLibPath);
+    copy_file(libPath, pkgLibPath);
 }
 
 /**
@@ -283,12 +285,12 @@ void cp_lib(char * pkgName,char * libName){
  * @param pkg_name 获取的应用包名
  * @param start_activity_name out 存放启动的main activity
  */
-void get_app_start_activity(char * pkg_name, char *start_activity_name) {
+void get_app_start_activity(char *pkg_name, char *start_activity_name) {
     char cmdstring[1024] = "dumpsys package ";
     char cmd_string[1024] = {0};
     char temp_file[] = "tmp_XXXXXX";
 
-    strcat(cmdstring,pkg_name);
+    strcat(cmdstring, pkg_name);
     int fd;
 
     if ((fd = mkstemp(temp_file)) == -1) {
@@ -331,7 +333,7 @@ void get_app_start_activity(char * pkg_name, char *start_activity_name) {
  * 启动app
  * @param pkg_name
  */
-void start_app(char * pkg_name){
+void start_app(char *pkg_name) {
     char start_activity_name[1024] = {0};
     get_app_start_activity(pkg_name, start_activity_name);
     printf("%s\n", start_activity_name);
