@@ -14,6 +14,7 @@
 #include "PrintLog.h"
 #include "ptrace_utils.h"
 #include "module_utils.h"
+
 /*************************************************
  *  通过远程直接调用dlopen\dlsym的方法ptrace注入so模块到远程进程中
  *  Input:          pid表示远程进程的ID，LibPath为被远程注入的so模块路径，FunctionName为远程注入的模块后调用的函数
@@ -168,69 +169,72 @@ struct process_inject {
     char lib_name[1024];
     char dex_name[1024];
     char *entry_fun;
-} process_inject = {0, "","", "entry"};
+} process_inject = {0, "", "", "entry"};
 
 
-void init_lib(char * pkgName){
+void init_lib() {
     //获取当前目录
     char current_absolute_path[4096] = {0};
-    if (realpath("./", current_absolute_path)==NULL) {
+    if (realpath("./", current_absolute_path) == NULL) {
         perror("realpath");
         exit(-1);
     }
-    strcat(process_inject.lib_name,current_absolute_path);
-    strcat(process_inject.lib_name,"/libLoadModule.so");
+    strcat(process_inject.lib_name, current_absolute_path);
+    strcat(process_inject.lib_name, "/libLoadModule.so");
 
-    strcat(process_inject.dex_name,current_absolute_path);
-    strcat(process_inject.dex_name,"/classes.dex");
+    strcat(process_inject.dex_name, current_absolute_path);
+    strcat(process_inject.dex_name, "/classes.dex");
     //修改为默认从加载so的路径读取
 //    cp_lib(pkgName,"libsandhook.so");
 }
 
-int test(int argc, char *argv[]) {
+void handle_parameter(int argc, char *argv[]) {
     pid_t pid = 0;
     int index = 0;
     char *pkg_name = NULL;
     char *file_name = NULL;
     char *dex_name = NULL;
-
+    bool start_app_flag = false;
 
     while (index < argc) {
-//        if (strcmp("-p", argv[index]) == 0) {
-//            if (index + 1 >= argc) {
-//                printf("Missing parameter -p\n");
-//                return -1;
-//            }
-//            index++;
-//            pid = atoi(argv[index]);
-//        }
+        if (strcmp("-p", argv[index]) == 0) {
+            if (index + 1 >= argc) {
+                printf("Missing parameter -p\n");
+                exit(-1);
+            }
+            index++;
+            pid = atoi(argv[index]);
+        }
 
         if (strcmp("-n", argv[index]) == 0) {
             if (index + 1 >= argc) {
                 printf("Missing parameter -n\n");
-                return -1;
+                exit(-1);
             }
             index++;
             pkg_name = argv[index];
 
-            init_lib(pkg_name);
-            start_app(pkg_name);
-            sleep(5);
+            if (start_app_flag) {
+                start_app(pkg_name);
+                sleep(3);
+            }
         }
 
-        if (strcmp("-f", argv[index]) == 0) {
+        if (strcmp("-so", argv[index]) == 0) {
             if (index + 1 >= argc) {
                 printf("Missing parameter -f\n");
-                return -1;
+                exit(-1);
             }
             index++;
             file_name = argv[index];
         }
 
+        if (strcmp("-f", argv[index]) == 0) { start_app_flag = true; }
+
         if (strcmp("-d", argv[index]) == 0) {
             if (index + 1 >= argc) {
                 printf("Missing parameter -d\n");
-                return -1;
+                exit(-1);
             }
             index++;
             dex_name = argv[index];
@@ -254,16 +258,21 @@ int test(int argc, char *argv[]) {
 
     if (dex_name != NULL) {
         printf("dex_name is %s\n", dex_name);
-//        process_inject.dex_name = strdup(dex_name);
-        strcpy(process_inject.dex_name ,strdup(dex_name));
+        strcpy(process_inject.dex_name, strdup(dex_name));
     }
 
 
     if (file_name != NULL) {
         printf("file_name is %s\n", file_name);
-//        process_inject.lib_name = strdup(file_name);
-        strcpy(process_inject.lib_name ,strdup(file_name));
+        strcpy(process_inject.lib_name, strdup(file_name));
     }
+}
+
+int test(int argc, char *argv[]) {
+    //初始化dex so
+    init_lib();
+    //处理参数
+    handle_parameter(argc, argv);
 
     return inject_remote_process(process_inject.pid, process_inject.lib_name,
                                  process_inject.entry_fun, process_inject.dex_name, 1);
