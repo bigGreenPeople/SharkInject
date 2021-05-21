@@ -72,11 +72,7 @@ void load_dex_and_run2(JNIEnv *env, const char *jarpath) {
 void load_dex_and_run(JNIEnv *env, const char *jarpath) {
     jobject appPathClassLoader = getClassLoader(env);
     //获取当前目录
-    char current_absolute_path[4096] = {0};
-    if (realpath("./", current_absolute_path) == NULL) {
-        perror("realpath");
-        exit(-1);
-    }
+    char current_absolute_path[4096] ="/data/local/tmp";
 
     jobject myClassLoader = createNewClassLoader(env, jarpath, current_absolute_path);
     LOGI("myClassLoader 0x%p\n", myClassLoader);

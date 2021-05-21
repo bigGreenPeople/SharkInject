@@ -273,6 +273,8 @@ jobject createNewClassLoader(JNIEnv* env, const char *jarpath,char * nativepath)
                                               "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;)V");
 
     LOGI("PathClassLoader loading jarpath[%s]\n", jarpath);
+    LOGI("nativepath loading nativepath[%s]\n", nativepath);
+
     jstring jarpath_str = env->NewStringUTF(jarpath);
     jstring narivepath_str = env->NewStringUTF(nativepath);
 
