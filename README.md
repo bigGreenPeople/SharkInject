@@ -10,3 +10,4 @@ android8 arm64 注入方案
 ```
 ./SharkInject -f -n  com.ss.android.ugc.aweme
 ```
+`您也可以直接运行gradle的executeDevice Task`
