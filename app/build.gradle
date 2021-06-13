@@ -76,8 +76,6 @@ task pushDevice(dependsOn: 'assembleDebug') {
 
         info = "adb push ${new File(project.buildDir, "/intermediates/cmake/debug/obj/$abi/$soName").canonicalPath} $pushPath".execute().text
         println "Push libLoadModule.so:$info"
-
-
     }
 }
 
