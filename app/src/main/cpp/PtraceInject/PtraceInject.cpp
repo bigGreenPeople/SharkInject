@@ -43,7 +43,7 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
         memcpy(&OriginalRegs, &CurrentRegs, sizeof(CurrentRegs));
 
         void *mmap_addr = get_mmap_address(pid);
-        LOGD("mmap RemoteFuncAddr:0x%lx", (uintptr_t) mmap_addr);
+        printf("mmap RemoteFuncAddr:0x%lx\n", (uintptr_t) mmap_addr);
 
         // mmap映射
         parameters[0] = 0;  // 设置为NULL表示让系统自动选择分配内存的地址
@@ -54,16 +54,16 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
         parameters[5] = 0; //文件映射偏移量
 
         if (ptrace_call(pid, (uintptr_t) mmap_addr, parameters, 6, &CurrentRegs) == -1) {
-            LOGD("Call Remote mmap Func Failed, err:%s", strerror(errno));
+            printf("Call Remote mmap Func Failed, err:%s\n", strerror(errno));
             break;
         }
 
-        LOGI("ptrace_call mmap success, return value=%lX, pc=%lX", ptrace_getret(&CurrentRegs),
+        printf("ptrace_call mmap success, return value=%lX, pc=%lX\n", ptrace_getret(&CurrentRegs),
              ptrace_getpc(&CurrentRegs));
 
         // 获取mmap函数执行后的返回值，也就是内存映射的起始地址
         void *RemoteMapMemoryAddr = (void *) ptrace_getret(&CurrentRegs);
-        LOGD("Remote Process Map Memory Addr:0x%lx", (uintptr_t) RemoteMapMemoryAddr);
+        printf("Remote Process Map Memory Addr:0x%lx\n", (uintptr_t) RemoteMapMemoryAddr);
 
 
         // 分别获取dlopen、dlsym、dlclose等函数的地址
@@ -75,7 +75,7 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
         // 将要加载的so库路径写入到远程进程内存空间中
         if (ptrace_writedata(pid, (uint8_t *) RemoteMapMemoryAddr, (uint8_t *) LibPath,
                              strlen(LibPath) + 1) == -1) {
-            LOGD("Write LibPath:%s to RemoteProcess error", LibPath);
+            printf("Write LibPath:%s to RemoteProcess error\n", LibPath);
             break;
         }
 
@@ -85,33 +85,33 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
         parameters[1] = RTLD_NOW | RTLD_GLOBAL;
 
         if (ptrace_call(pid, (uintptr_t) dlopen_addr, parameters, 2, &CurrentRegs) == -1) {
-            LOGD("Call Remote dlopen Func Failed");
+            printf("Call Remote dlopen Func Failed\n");
             break;
         }
 
         // RemoteModuleAddr为远程进程加载注入模块的地址
         void *RemoteModuleAddr = (void *) ptrace_getret(&CurrentRegs);
-        LOGI("ptrace_call dlopen success, Remote Process load module Addr:0x%lx",
+        printf("ptrace_call dlopen success, Remote Process load module Addr:0x%lx\n",
              (long) RemoteModuleAddr);
 
         if ((long) RemoteModuleAddr == 0x0)   // dlopen 错误
         {
-            LOGD("dlopen error");
+            printf("dlopen error\n");
             if (ptrace_call(pid, (uintptr_t) dlerror_addr, parameters, 0, &CurrentRegs) == -1) {
-                LOGD("Call Remote dlerror Func Failed");
+                printf("Call Remote dlerror Func Failed\n");
                 break;
             }
             char *Error = (char *) ptrace_getret(&CurrentRegs);
             char LocalErrorInfo[1024] = {0};
             ptrace_readdata(pid, (uint8_t *) Error, (uint8_t *) LocalErrorInfo, 1024);
-            LOGD("dlopen error:%s", LocalErrorInfo);
+            printf("dlopen error:%s\n", LocalErrorInfo);
             break;
         }
 
         // 将so库中需要调用的函数名称写入到远程进程内存空间中
         if (ptrace_writedata(pid, (uint8_t *) RemoteMapMemoryAddr + strlen(LibPath) + 2,
                              (uint8_t *) FunctionName, strlen(FunctionName) + 1) == -1) {
-            LOGD("Write FunctionName:%s to RemoteProcess error", FunctionName);
+            printf("Write FunctionName:%s to RemoteProcess error\n", FunctionName);
             break;
         }
 
@@ -121,20 +121,20 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
         parameters[1] = (uintptr_t) ((uint8_t *) RemoteMapMemoryAddr + strlen(LibPath) + 2);
 
         if (ptrace_call(pid, (uintptr_t) dlsym_addr, parameters, 2, &CurrentRegs) == -1) {
-            LOGD("Call Remote dlsym Func Failed");
+            printf("Call Remote dlsym Func Failed\n");
             break;
         }
 
         // RemoteModuleFuncAddr为远程进程空间内获取的函数地址
         void *RemoteModuleFuncAddr = (void *) ptrace_getret(&CurrentRegs);
-        LOGI("ptrace_call dlsym success, Remote Process ModuleFunc Addr:0x%lx",
+        printf("ptrace_call dlsym success, Remote Process ModuleFunc Addr:0x%lx\n",
              (uintptr_t) RemoteModuleFuncAddr);
 
         //为调用的函数参数，拷贝字符串 (这里分配到0x200后面 一般上面的字符串不会超过)
         if (ptrace_writedata(pid, (uint8_t *) RemoteMapMemoryAddr + strlen(LibPath) + 2 +
                                   strlen(parameter) + 2,
                              (uint8_t *) parameter, strlen(parameter) + 1) == -1) {
-            LOGD("Write param error");
+            printf("Write param error\n");
             break;
         }
         parameters[0] = (uintptr_t) ((uint8_t *) RemoteMapMemoryAddr + strlen(LibPath) + 2 +
@@ -144,18 +144,18 @@ int inject_remote_process(pid_t pid, char *LibPath, char *FunctionName,
         //暂时传一个参数吧
         if (ptrace_call(pid, (uintptr_t) RemoteModuleFuncAddr, parameters, NumParameter,
                         &CurrentRegs) == -1) {
-            LOGD("Call Remote injected Func Failed");
+            printf("Call Remote injected Func Failed\n");
             break;
         }
 
         if (ptrace_setregs(pid, &OriginalRegs) == -1) {
-            LOGD("Recover reges failed");
+            printf("Recover reges failed\n");
             break;
         }
-        LOGD("Recover Regs Success");
+        printf("Recover Regs Success\n");
         ptrace_getregs(pid, &CurrentRegs);
         if (memcmp(&OriginalRegs, &CurrentRegs, sizeof(CurrentRegs)) != 0) {
-            LOGD("Set Regs Error");
+            printf("Set Regs Error\n");
         }
         iRet = 0;
     } while (false);
@@ -217,7 +217,7 @@ void handle_parameter(int argc, char *argv[]) {
 
             if (start_app_flag) {
                 start_app(pkg_name);
-                sleep(3);
+                sleep(1);
             }
         }
 

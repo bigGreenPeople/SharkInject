@@ -36,7 +36,7 @@ void *get_dlopen_address(pid_t pid) {
     } else {
         dlopen_addr = get_remote_func_addr(pid, libdl_path, (void *) dlopen);
     }
-    LOGD("dlopen RemoteFuncAddr:0x%lx", (uintptr_t) dlopen_addr);
+    printf("dlopen RemoteFuncAddr:0x%lx\n", (uintptr_t) dlopen_addr);
     return dlopen_addr;
 }
 
@@ -51,7 +51,7 @@ void *get_dlclose_address(pid_t pid) {
     } else {
         dlclose_addr = get_remote_func_addr(pid, libdl_path, (void *) dlclose);
     }
-    LOGD("dlclose RemoteFuncAddr:0x%lx", (uintptr_t) dlclose_addr);
+    printf("dlclose RemoteFuncAddr:0x%lx\n", (uintptr_t) dlclose_addr);
     return dlclose_addr;
 }
 
@@ -66,7 +66,7 @@ void *get_dlsym_address(pid_t pid) {
     } else {
         dlsym_addr = get_remote_func_addr(pid, libdl_path, (void *) dlsym);
     }
-    LOGD("dlsym RemoteFuncAddr:0x%lx", (uintptr_t) dlsym_addr);
+    printf("dlsym RemoteFuncAddr:0x%lx\n", (uintptr_t) dlsym_addr);
     return dlsym_addr;
 }
 
@@ -82,7 +82,7 @@ void *get_dlerror_address(pid_t pid) {
     } else {
         dlerror_addr = get_remote_func_addr(pid, libdl_path, (void *) dlerror);
     }
-    LOGD("dlerror RemoteFuncAddr:0x%lx", (uintptr_t) dlerror_addr);
+    printf("dlerror RemoteFuncAddr:0x%lx\n", (uintptr_t) dlerror_addr);
     return dlerror_addr;
 }
 
@@ -98,11 +98,11 @@ void *get_dlerror_address(pid_t pid) {
 int ptrace_attach(pid_t pid) {
     int status = 0;
     if (ptrace(PTRACE_ATTACH, pid, NULL, NULL) < 0) {
-        LOGE("ptrace attach process error, pid:%d, err:%s", pid, strerror(errno));
+        printf("ptrace attach process error, pid:%d, err:%s\n", pid, strerror(errno));
         return -1;
     }
 
-    LOGD("attach porcess success, pid:%d", pid);
+    printf("attach porcess success, pid:%d\n", pid);
     waitpid(pid, &status, WUNTRACED);
 
     return 0;
@@ -117,11 +117,11 @@ int ptrace_attach(pid_t pid) {
  * ***********************************************/
 int ptrace_detach(pid_t pid) {
     if (ptrace(PTRACE_DETACH, pid, NULL, 0) < 0) {
-        LOGE("detach process error, pid:%d, err:%s", pid, strerror(errno));
+        printf("detach process error, pid:%d, err:%s\n", pid, strerror(errno));
         return -1;
     }
 
-    LOGD("detach process success, pid:%d", pid);
+    printf("detach process success, pid:%d\n", pid);
     return 0;
 }
 
@@ -134,11 +134,11 @@ int ptrace_detach(pid_t pid) {
  * ***********************************************/
 int ptrace_continue(pid_t pid) {
     if (ptrace(PTRACE_CONT, pid, NULL, NULL) < 0) {
-        LOGE("ptrace continue process error, pid:%d, err:%ss", pid, strerror(errno));
+        printf("ptrace continue process error, pid:%d, err:%ss\n", pid, strerror(errno));
         return -1;
     }
 
-    LOGD("ptrace continue process success, pid:%d", pid);
+    printf("ptrace continue process success, pid:%d\n", pid);
     return 0;
 }
 
@@ -158,7 +158,7 @@ int ptrace_getregs(pid_t pid, struct pt_regs *regs) {
     ioVec.iov_base = regs;
     ioVec.iov_len = sizeof(*regs);
     if (ptrace(PTRACE_GETREGSET, pid, (void *) regset, &ioVec) < 0) {
-        LOGE("ptrace_getregs: Can not get register values, io %llx, %d", ioVec.iov_base,
+        printf("ptrace_getregs: Can not get register values, io %llx, %d\n", ioVec.iov_base,
              ioVec.iov_len);
         return -1;
     }
@@ -166,7 +166,7 @@ int ptrace_getregs(pid_t pid, struct pt_regs *regs) {
     return 0;
 #else
     if (ptrace(PTRACE_GETREGS, pid, NULL, regs) < 0) {
-        LOGD("Get Regs error, pid:%d, err:%s", pid, strerror(errno));
+        printf("Get Regs error, pid:%d, err:%s\n", pid, strerror(errno));
         return -1;
     }
 #endif
@@ -195,7 +195,7 @@ int ptrace_setregs(pid_t pid, struct pt_regs *regs) {
     return 0;
 #else
     if (ptrace(PTRACE_SETREGS, pid, NULL, regs) < 0) {
-        LOGD("Set Regs error, pid:%d, err:%s", pid, strerror(errno));
+        printf("Set Regs error, pid:%d, err:%s\n", pid, strerror(errno));
         return -1;
     }
 #endif
@@ -213,7 +213,7 @@ long ptrace_getret(struct pt_regs *regs) {
 #elif defined(__arm__) || defined(__aarch64__)
     return regs->ARM_r0;
 #else
-    LOGD("Not supported Environment %s", __FUNCTION__);
+    printf("Not supported Environment %s\n", __FUNCTION__);
 #endif
 }
 
@@ -228,7 +228,7 @@ long ptrace_getpc(struct pt_regs *regs) {
 #elif defined(__arm__) || defined(__aarch64__)
     return regs->ARM_pc;
 #else
-    LOGD("Not supported Environment %s", __FUNCTION__);
+    printf("Not supported Environment %s\n", __FUNCTION__);
 #endif
 }
 
@@ -291,7 +291,7 @@ int ptrace_writedata(pid_t pid, uint8_t *pWriteAddr, uint8_t *pWriteData,
         if (ptrace(PTRACE_POKETEXT, pid, (void *) pCurDestBuf, (void *) lTmpBuf) <
             0)  // PTRACE_POKETEXT表示从远程内存空间写入一个sizeof(long)大小的数据
         {
-            LOGD("Write Remote Memory error, MemoryAddr:0x%lx, err:%s", (uintptr_t) pCurDestBuf,
+            printf("Write Remote Memory error, MemoryAddr:0x%lx, err:%s\n", (uintptr_t) pCurDestBuf,
                  strerror(errno));
             return -1;
         }
@@ -305,7 +305,7 @@ int ptrace_writedata(pid_t pid, uint8_t *pWriteAddr, uint8_t *pWriteData,
                          NULL); //先取出原内存中的数据，然后将要写入的数据以单字节形式填充到低字节处
         memcpy((void *) (&lTmpBuf), pCurSrcBuf, nRemainCount);
         if (ptrace(PTRACE_POKETEXT, pid, pCurDestBuf, lTmpBuf) < 0) {
-            LOGD("Write Remote Memory error, MemoryAddr:0x%lx, err:%s", (uintptr_t) pCurDestBuf,
+            printf("Write Remote Memory error, MemoryAddr:0x%lx, err:%s\n", (uintptr_t) pCurDestBuf,
                  strerror(errno));
             return -1;
         }
@@ -342,7 +342,7 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
 
     // 开始执行
     if (-1 == ptrace_setregs(pid, regs) || -1 == ptrace_continue(pid)) {
-        LOGE("ptrace set regs or continue error, pid:%d", pid);
+        printf("ptrace set regs or continue error, pid:%d\n", pid);
         return -1;
     }
 
@@ -352,10 +352,10 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
     waitpid(pid, &stat, WUNTRACED);
 
     // 判断是否成功执行函数
-    LOGI("ptrace call ret status is %d\n", stat);
+    printf("ptrace call ret status is %d\n", stat);
     while (stat != 0xb7f) {
         if (ptrace_continue(pid) == -1) {
-            LOGE("ptrace call error");
+            printf("ptrace call error");
             return -1;
         }
         waitpid(pid, &stat, WUNTRACED);
@@ -363,7 +363,7 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
 
     // 获取远程进程的寄存器值，方便获取返回值
     if (ptrace_getregs(pid, regs) == -1) {
-        LOGD("After call getregs error");
+        printf("After call getregs error");
         return -1;
     }
 #elif defined(__x86_64__)
@@ -398,7 +398,7 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
 
     // 开始执行
     if (-1 == ptrace_setregs(pid, regs) || -1 == ptrace_continue(pid)) {
-        LOGE("ptrace set regs or continue error, pid:%d", pid);
+        printf("ptrace set regs or continue error, pid:%d", pid);
         return -1;
     }
 
@@ -408,10 +408,10 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
     waitpid(pid, &stat, WUNTRACED);
 
     // 判断是否成功执行函数
-    LOGI("ptrace call ret status is %lX\n", stat);
+    printf("ptrace call ret status is %lX\n", stat);
     while (stat != 0xb7f) {
         if (ptrace_continue(pid) == -1) {
-            LOGE("ptrace call error");
+            printf("ptrace call error");
             return -1;
         }
         waitpid(pid, &stat, WUNTRACED);
@@ -455,7 +455,7 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
     char sdk_ver[32];
     memset(sdk_ver, 0, sizeof(sdk_ver));
     __system_property_get("ro.build.version.sdk", sdk_ver);
-//    LOGD("ro.build.version.sdk: %s", sdk_ver);
+//    printf("ro.build.version.sdk: %s", sdk_ver);
     if (atoi(sdk_ver) <= 23) {
         lr_val = 0;
     } else { // Android 7.0
@@ -468,7 +468,7 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
     regs->ARM_lr = lr_val;
 
     if (ptrace_setregs(pid, regs) == -1 || ptrace_continue(pid) == -1) {
-        LOGD("ptrace set regs or continue error, pid:%d", pid);
+        printf("ptrace set regs or continue error, pid:%d\n", pid);
         return -1;
     }
 
@@ -479,10 +479,10 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
     waitpid(pid, &stat, WUNTRACED);
 
     // 判断是否成功执行函数
-    LOGD("ptrace call ret status is %d\n", stat);
+    printf("ptrace call ret status is %d\n", stat);
     while ((stat & 0xFF) != 0x7f) {
         if (ptrace_continue(pid) == -1) {
-            LOGD("ptrace call error");
+            printf("ptrace call error\n");
             return -1;
         }
         waitpid(pid, &stat, WUNTRACED);
@@ -490,26 +490,26 @@ int ptrace_call(pid_t pid, uintptr_t ExecuteAddr, long *parameters, long num_par
 
     // 获取远程进程的寄存器值，方便获取返回值
     if (ptrace_getregs(pid, regs) == -1) {
-        LOGD("After call getregs error");
+        printf("After call getregs error\n");
         return -1;
     }
 #else
-    LOGD("Not supported Environment %s", __FUNCTION__);
+    printf("Not supported Environment %s\n", __FUNCTION__);
 #endif
     return 0;
 }
 
 void dump_registers(struct pt_regs *regs) {
 #if defined(__i386__)
-    LOGD("X86 eax:%08x, ebx:%08x, ecx:%08x, edx:%08x, esi:%08x, edi:%08x, ebp:%08x, xds:%08x, xes:%08x, xfs:%08x, xgs:%08x, orig_eax:%08x, eip:%08x, xcs:%08x, eflags:%08x, esp:%08x, xss:%08x,",
+    printf("X86 eax:%08x, ebx:%08x, ecx:%08x, edx:%08x, esi:%08x, edi:%08x, ebp:%08x, xds:%08x, xes:%08x, xfs:%08x, xgs:%08x, orig_eax:%08x, eip:%08x, xcs:%08x, eflags:%08x, esp:%08x, xss:%08x,",
          regs->eax, regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp, regs->xds,
          regs->xes, regs->xfs, regs->xgs, regs->orig_eax, regs->eip, regs->xcs, regs->eflags,
          regs->esp, regs->xss);
 #elif defined(__arm__)
-    LOGD("ARM_r0:0x%08X, ARM_r1:0x%08X, ARM_r2:0x%08X, ARM_r3:0x%08X, ARM_r4:0x%08X, ARM_r5:0x%08X, ARM_r6:0x%08X, ARM_r7:0x%08X, ARM_r8:0x%08X, ARM_r9:0x%08X, ARM_r10:0x%08X, ARM_fp:0x%08X, ARM_ip:0x%08X, ARM_sp:0x%08X, ARM_lr:0x%08X, ARM_pc:0x%08X, ARM_cpsr:0x%08X, ARM_ORIG_r0:0x%08X",
+    printf("ARM_r0:0x%08X, ARM_r1:0x%08X, ARM_r2:0x%08X, ARM_r3:0x%08X, ARM_r4:0x%08X, ARM_r5:0x%08X, ARM_r6:0x%08X, ARM_r7:0x%08X, ARM_r8:0x%08X, ARM_r9:0x%08X, ARM_r10:0x%08X, ARM_fp:0x%08X, ARM_ip:0x%08X, ARM_sp:0x%08X, ARM_lr:0x%08X, ARM_pc:0x%08X, ARM_cpsr:0x%08X, ARM_ORIG_r0:0x%08X",
          regs->ARM_r0 ,regs->ARM_r1 ,regs->ARM_r2 ,regs->ARM_r3 ,regs->ARM_r4 ,regs->ARM_r5 ,regs->ARM_r6 ,regs->ARM_r7 ,regs->ARM_r8 ,regs->ARM_r9 ,regs->ARM_r10 ,regs->ARM_fp ,regs->ARM_ip ,regs->ARM_sp ,regs->ARM_lr ,regs->ARM_pc ,regs->ARM_cpsr ,regs->ARM_ORIG_r0);
 #elif defined(__aarch64__)
-    LOGD("x0:%016lx, x1:%016lx, x2:%016lx, x3:%016lx, x4:%016lx, x5:%016lx, x6:%016lx, x7:%016lx, x8:%016lx, x9:%016lx, x10:%016lx, x11:%016lx, x12:%016lx, x13:%016lx, x14:%016lx, x15:%016lx, x16:%016lx, x17:%016lx, x18:%016lx, x19:%016lx, x20:%016lx, x21:%016lx, x22:%016lx, x23:%016lx, x24:%016lx, x25:%016lx, x26:%016lx, x27:%016lx, x28:%016lx, x29:%016lx, x30:%016lx, sp:%016lx, pc:%016lx, pstate:%016lx",
+    printf("x0:%016lx, x1:%016lx, x2:%016lx, x3:%016lx, x4:%016lx, x5:%016lx, x6:%016lx, x7:%016lx, x8:%016lx, x9:%016lx, x10:%016lx, x11:%016lx, x12:%016lx, x13:%016lx, x14:%016lx, x15:%016lx, x16:%016lx, x17:%016lx, x18:%016lx, x19:%016lx, x20:%016lx, x21:%016lx, x22:%016lx, x23:%016lx, x24:%016lx, x25:%016lx, x26:%016lx, x27:%016lx, x28:%016lx, x29:%016lx, x30:%016lx, sp:%016lx, pc:%016lx, pstate:%016lx\n",
          regs->regs[0], regs->regs[1], regs->regs[2], regs->regs[3], regs->regs[4], regs->regs[5],
          regs->regs[6], regs->regs[7], regs->regs[8], regs->regs[9], regs->regs[10], regs->regs[11],
          regs->regs[12], regs->regs[13], regs->regs[14], regs->regs[15], regs->regs[16],
@@ -518,11 +518,11 @@ void dump_registers(struct pt_regs *regs) {
          regs->regs[27], regs->regs[28], regs->regs[29], regs->regs[30], regs->sp, regs->pc,
          regs->pstate);
 #elif defined(__x86_64__)
-    LOGD("rax:0x%lX, rbx:0x%lX, rcx:0x%lX, rdx:0x%lX, rbp:0x%lX, rdi:0x%lX, rip:0x%lX, rsi:0x%lX, rsp:0x%lX, ss:0x%lX, cs:0x%lX, eflags:0x%lX, orig_rax:0x%lX, r8:0x%lX, r9:0x%lX, r10:0x%lX, r11:0x%lX, r12:0x%lX, r13:0x%lX, r14:0x%lX, r15:0x%lX",
+    printf("rax:0x%lX, rbx:0x%lX, rcx:0x%lX, rdx:0x%lX, rbp:0x%lX, rdi:0x%lX, rip:0x%lX, rsi:0x%lX, rsp:0x%lX, ss:0x%lX, cs:0x%lX, eflags:0x%lX, orig_rax:0x%lX, r8:0x%lX, r9:0x%lX, r10:0x%lX, r11:0x%lX, r12:0x%lX, r13:0x%lX, r14:0x%lX, r15:0x%lX",
          regs->rax, regs->rbx, regs->rcx, regs->rdx, regs->rbp, regs->rdi, regs->rip, regs->rsi,
          regs->rsp, regs->ss, regs->cs, regs->eflags, regs->orig_rax, regs->r8, regs->r9, regs->r10,
          regs->r11, regs->r12, regs->r13, regs->r14, regs->r15);
 #else
-    LOGD("Not supported Environment %s", __FUNCTION__);
+    printf("Not supported Environment %s\n", __FUNCTION__);
 #endif
 }

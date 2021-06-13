@@ -8,7 +8,7 @@
 //如果宏定义了IS_DEBUG，那么下面就会宏定义下面这些日志打印函数
 #ifdef IS_DEBUG
 
-#define LOG_TAG ("SharkChilli")
+#define LOG_TAG ("InjectShark")
 
 #define LOGV(...) ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
 

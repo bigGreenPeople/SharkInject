@@ -340,6 +340,7 @@ void start_app(char *pkg_name) {
 
     char start_cmd[1024] = "am start ";
     strcat(start_cmd, start_activity_name);
+    printf("%s\n",start_cmd);
     system(start_cmd);
 }
 

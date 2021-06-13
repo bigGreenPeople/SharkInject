@@ -7,7 +7,7 @@
 
 #ifdef IS_DEBUG
 
-#define LOG_TAG ("SharkChilli")
+#define LOG_TAG ("InjectShark")
 
 #define LOGV(...) ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
 

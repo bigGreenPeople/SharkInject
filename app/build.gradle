@@ -58,11 +58,11 @@ ext {
     //so名称
     soName = "libLoadModule.so"
     //注入目标包名
-    appName = "com.shark.nougat"
+    appName = "com.ss.android.ugc.aweme"
 }
 
 //将相关文件push到手机
-task pushDevice {
+task pushDevice(dependsOn: 'assembleDebug') {
     group 'Online-Device'
     description 'Debug with online device without remote server'
 
@@ -94,7 +94,9 @@ task chmodDevice(dependsOn: pushDevice) {
 task executeDevice(dependsOn: chmodDevice) {
     group 'Online-Device'
     doLast {
-        def info = "adb shell cd $pushPath;$pushPath$elfName -f -n $appName".execute().text
+        def exec_cmd = "adb shell \"cd $pushPath;su -c $pushPath$elfName -f -n $appName\""
+        println exec_cmd
+        def info = exec_cmd.execute().text
 
         println "executeDevice:$info"
     }

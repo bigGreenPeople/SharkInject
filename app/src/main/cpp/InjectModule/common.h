@@ -6,7 +6,7 @@
 
 #define NELEM(x) ((int) (sizeof(x) / sizeof((x)[0])))
 
-#define TAG "SharkChilli"
+#define TAG "InjectShark"
 #define LOGI(FORMAT, ...) __android_log_print(ANDROID_LOG_INFO, TAG, FORMAT, ##__VA_ARGS__);
 #define LOGD(FORMAT, ...) __android_log_print(ANDROID_LOG_DEBUG, TAG, FORMAT, ##__VA_ARGS__);
 #define LOGV(FORMAT, ...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, FORMAT, ##__VA_ARGS__);
