@@ -8,20 +8,20 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class ViewHelper {
-    private static ViewHelper mViewHelper;
+public class ViewManager {
+    private static ViewManager mViewHelper;
     private ClassLoader mClassLoader;
 
-    private ViewHelper() {
+    private ViewManager() {
     }
 
-    private ViewHelper(ClassLoader classLoader) {
+    private ViewManager(ClassLoader classLoader) {
         this.mClassLoader = classLoader;
     }
 
-    public static synchronized ViewHelper getInstance(ClassLoader classLoader) {
+    public static synchronized ViewManager getInstance(ClassLoader classLoader) {
         if (mViewHelper == null) {
-            mViewHelper = new ViewHelper(classLoader);
+            mViewHelper = new ViewManager(classLoader);
         }
         return mViewHelper;
     }
