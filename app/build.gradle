@@ -5,12 +5,13 @@ android {
     buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.example.androidinject"
-        minSdkVersion 19
+        minSdkVersion 24
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled false
 
         externalNativeBuild {
             cmake {
@@ -34,6 +35,10 @@ android {
             version "3.10.2"
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -41,6 +46,9 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'com.swift.sandhook:hooklib:4.2.1'
+    implementation "org.java-websocket:Java-WebSocket:1.5.1"
+    implementation 'com.google.code.gson:gson:2.8.1'
+
 // 不使用 Xposed API 则不需要引入
     implementation 'com.swift.sandhook:xposedcompat:4.2.+'
     testImplementation 'junit:junit:4.12'
@@ -68,7 +76,7 @@ task pushDevice(dependsOn: 'assembleDebug') {
 
     doLast {
         //push到手机上
-        def info = "adb push ${new File(project.buildDir, "/intermediates/dex/debug/mergeDexDebug/out/classes.dex").canonicalPath} $pushPath".execute().text
+        def info = "adb push ${new File(project.buildDir, "/intermediates/dex/debug/mergeDexDebug/classes.dex").canonicalPath} $pushPath".execute().text
         println "Push dex:$info"
 
         info = "adb push ${new File(project.buildDir, "/intermediates/cmake/debug/obj/$abi/$elfName").canonicalPath} $pushPath".execute().text

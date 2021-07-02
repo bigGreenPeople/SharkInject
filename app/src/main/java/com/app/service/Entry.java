@@ -5,9 +5,11 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.ArrayMap;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.app.context.ContextUtils;
 import com.app.logic.LogicEntry;
+import com.app.socket.JWebSocketClient;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

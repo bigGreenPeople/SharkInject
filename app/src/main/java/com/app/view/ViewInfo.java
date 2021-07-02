@@ -11,14 +11,22 @@ public class ViewInfo {
     private boolean shown;
     private int id;
     private String text;
+    private String description;
 
     private int x;
     private int y;
     private int width;
     private int height;
 
-
     private List<ViewInfo> childList;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public int getX() {
         return x;

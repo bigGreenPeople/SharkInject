@@ -7,6 +7,9 @@ import android.view.Window;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ViewManager {
     private static ViewManager mViewHelper;
@@ -26,6 +29,15 @@ public class ViewManager {
         return mViewHelper;
     }
 
+    public Map<String, ViewInfo> getActivitysLayout(List<Activity> activities) {
+        HashMap<String, ViewInfo> layoutMap = new HashMap<>();
+
+        activities.forEach(activity -> {
+            layoutMap.put(activity.getClass().getName(), getActivityViewInfo(activity));
+        });
+
+        return layoutMap;
+    }
 
     public ViewInfo getActivityViewInfo(Activity activity) {
         Window window = activity.getWindow();
@@ -45,6 +57,8 @@ public class ViewManager {
         int[] viewLocation = getViewLocation(view);
         viewInfo.setX(viewLocation[0]);
         viewInfo.setY(viewLocation[1]);
+        if (view.getContentDescription() != null)
+            viewInfo.setDescription(view.getContentDescription().toString());
 
         if (view instanceof TextView)
             viewInfo.setText(((TextView) view).getText().toString());

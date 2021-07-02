@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,20 @@ public class ContextUtils {
             mContextUtils = new ContextUtils(classLoader);
         }
         return mContextUtils;
+    }
+
+    public static synchronized ContextUtils getInstance() {
+        if (mContextUtils == null) {
+            throw new RuntimeException("mContextUtils is null");
+        }
+        return mContextUtils;
+    }
+
+    public void runOnUiThread(RunUiInterface runUiInterface) {
+        Activity topActivity = getTopActivity();
+        topActivity.runOnUiThread(() -> {
+            runUiInterface.fun();
+        });
     }
 
     public Application geApplication() {

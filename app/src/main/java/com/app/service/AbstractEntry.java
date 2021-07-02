@@ -10,7 +10,7 @@ import de.robv.android.xposed.XposedHelpers;
 
 public abstract class AbstractEntry {
     protected static String TAG = "SharkChilli";
-    private PathClassLoader mClassLoader;
+    public PathClassLoader mClassLoader;
     private String pkgName;
 
     public AbstractEntry() {
