@@ -1,6 +1,7 @@
 package com.app.view;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -42,10 +43,18 @@ public class ViewManager {
     public ViewInfo getActivityViewInfo(Activity activity) {
         Window window = activity.getWindow();
         View decorView = window.getDecorView();
-        return getViewInfo(decorView);
+        int statusBarHeight = getStatusBarHeight(activity);
+        return getViewInfo(decorView.findViewById(Window.ID_ANDROID_CONTENT), statusBarHeight);
     }
 
-    public ViewInfo getViewInfo(View view) {
+    public int getStatusBarHeight(Activity activity) {
+        Resources resources = activity.getResources();
+        int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
+        int height = resources.getDimensionPixelSize(resourceId);
+        return height;
+    }
+
+    public ViewInfo getViewInfo(View view, int statusBarHeight) {
         ViewInfo viewInfo = new ViewInfo();
 
         viewInfo.setId(view.getId());
@@ -56,7 +65,7 @@ public class ViewManager {
         viewInfo.setWidth(view.getWidth());
         int[] viewLocation = getViewLocation(view);
         viewInfo.setX(viewLocation[0]);
-        viewInfo.setY(viewLocation[1]);
+        viewInfo.setY(viewLocation[1] - statusBarHeight);
         if (view.getContentDescription() != null)
             viewInfo.setDescription(view.getContentDescription().toString());
 
@@ -70,7 +79,7 @@ public class ViewManager {
 
             for (int i = 0; i < vp.getChildCount(); i++) {
                 View viewchild = vp.getChildAt(i);
-                ViewInfo childViewInfo = getViewInfo(viewchild);
+                ViewInfo childViewInfo = getViewInfo(viewchild, statusBarHeight);
                 childList.add(childViewInfo);
             }
             viewInfo.setChildList(childList);
