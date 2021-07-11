@@ -14,6 +14,21 @@ public class ScreenShot {
     public final static String TAG = "SharkChilli";
 
     // 获取指定Activity的截屏，保存到png文件
+    private static Bitmap takeScreenShot(View view) {
+        // View是你需要截图的View
+        view.setDrawingCacheEnabled(true);
+        view.buildDrawingCache();
+        Bitmap b1 = view.getDrawingCache();
+
+        // 获取屏幕长和高
+        int width = view.getWidth();
+        int height = view.getHeight();
+        Bitmap b = Bitmap.createBitmap(b1, 0, 0, width, height);
+        view.destroyDrawingCache();
+        return b;
+    }
+
+    // 获取指定Activity的截屏，保存到png文件
     private static Bitmap takeScreenShot(Activity activity) {
         // View是你需要截图的View
         View view = activity.getWindow().getDecorView();
@@ -71,9 +86,35 @@ public class ScreenShot {
         return bytes;
     }
 
+    /**
+     * 获取截屏的byte数组
+     *
+     * @param view
+     * @return
+     */
+    public static byte[] getViewScreenBytes(View view) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Bitmap bitmap = ScreenShot.takeScreenShot(view);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        byte[] bytes = byteArrayOutputStream.toByteArray();
+        return bytes;
+    }
+
     // 程序入口
     public static void shoot(Activity a) {
         ScreenShot.savePic(ScreenShot.takeScreenShot(a), "sdcard/YoupinSeckillSuccess.png");
+    }
+
+
+    // 程序入口
+    public static void shoot(View a) {
+        ScreenShot.savePic(ScreenShot.takeScreenShot(a), "sdcard/YoupinSeckillSuccess.png");
+    }
+
+    // 程序入口
+    public static void shoot(View a, String savePath) {
+        ScreenShot.savePic(ScreenShot.takeScreenShot(a), savePath);
     }
 
     // 程序入口

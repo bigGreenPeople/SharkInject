@@ -2,6 +2,7 @@ package com.app.logic;
 
 import android.app.Activity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.app.context.ContextUtils;
@@ -15,6 +16,7 @@ import com.app.view.ViewManager;
 import com.google.gson.Gson;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class LogicEntry extends AbstractEntry implements IRecvListener {
@@ -58,10 +60,25 @@ public class LogicEntry extends AbstractEntry implements IRecvListener {
                 return;
             }
 
-            mContextUtils.getRunningActivitys().forEach(activity -> {
-                byte[] activityScreenBytes = ScreenShot.getActivityScreenBytes(activity);
-                mJWebSocketClient.send(activityScreenBytes);
-            });
+            try {
+                mContextUtils.getRunningActivitys().forEach(activity -> {
+                    ArrayList<View> windowViews = mViewManager.getWindowsView(activity);
+                    for (int j = 0; j < windowViews.size(); j++) {
+                        byte[] activityScreenBytes = new byte[]{};
+
+                        if (j==0){
+                            activityScreenBytes = ScreenShot.getActivityScreenBytes(activity);
+                        }else {
+                            activityScreenBytes = ScreenShot.getViewScreenBytes(windowViews.get(j));
+                        }
+                        mJWebSocketClient.send(activityScreenBytes);
+
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "onCreate: ", e);
+            }
             // 发送完毕
             WebSocketMessage textMessage = WebSocketMessage.createMessage(WebSocketMessage.Type.GET_LAYOUT_IMG_END);
             mJWebSocketClient.send(textMessage);
